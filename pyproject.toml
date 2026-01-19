@@ -12,3 +12,6 @@ dependencies = []
 
 [project.scripts]
 shona = "shona_core.cli:main"
+
+[tool.setuptools]
+packages = ["shona_core"]

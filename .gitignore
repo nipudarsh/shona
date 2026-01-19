@@ -1,8 +1,12 @@
+
+
+
+
+.shona/
+data/
+.venv/
 __pycache__/
 *.pyc
-.venv/
-venv/
-data/
 dist/
 build/
 *.egg-info/

@@ -2,7 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 from shona_core.utils.io import list_files_sorted, read_json
 
-SNAP_DIR = Path("data/snapshots")
+SNAP_DIR = Path(".shona/snapshots")
 
 def diff_latest_two():
     snaps = list_files_sorted(SNAP_DIR, ".json")

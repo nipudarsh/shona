@@ -1,40 +1,118 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SHONA</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
+
 <body>
-  <div class="wrap">
+  <div class="bg">
+    <div class="glow g1"></div>
+    <div class="glow g2"></div>
+    <div class="glow g3"></div>
+  </div>
+
+  <main class="shell">
     <header class="top">
-      <div>
-        <h1>SHONA</h1>
-        <p class="sub">Local-first cyber assistant • friend-mode • v0.1.0</p>
+      <div class="brand">
+        <div class="logo">
+          <!-- simple futuristic “S” -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M18 7.5c0-2-2.5-3.5-6-3.5S6 5.5 6 7.5 8.5 11 12 11s6 1.5 6 3.5S15.5 18 12 18s-6-1.5-6-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <h1>SHONA</h1>
+          <p class="sub">Local-first cyber assistant • friend mode • futuristic UI</p>
+        </div>
       </div>
-      <div class="badge" id="mood">CALM</div>
+
+      <div class="right">
+        <div class="pill" id="pill">
+          <span class="dot" id="dot"></span>
+          <span id="mood">CALM</span>
+        </div>
+      </div>
     </header>
 
-    <section class="card">
-      <div class="row">
-        <button class="btn" onclick="doScan()">Scan</button>
-        <button class="btn" onclick="doDiff()">Diff</button>
-        <button class="btn" onclick="loadPorts()">Ports</button>
-        <button class="btn" onclick="loadPs()">Processes</button>
+    <section class="grid">
+      <!-- Left: command panel -->
+      <div class="card panel">
+        <div class="cardHead">
+          <h2>Quick Actions</h2>
+          <p>One click. Clean output. Zero drama.</p>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" onclick="doScan()">
+            <span>Scan</span>
+            <small>snapshot now</small>
+          </button>
+
+          <button class="btn" onclick="doDiff()">
+            <span>Diff</span>
+            <small>what changed</small>
+          </button>
+
+          <button class="btn" onclick="loadPorts()">
+            <span>Ports</span>
+            <small>listening ports</small>
+          </button>
+
+          <button class="btn" onclick="loadPs()">
+            <span>Processes</span>
+            <small>running list</small>
+          </button>
+        </div>
+
+        <div class="mini">
+          <div class="miniRow">
+            <span class="k">Tip</span>
+            <span class="v">Try: “scan”, “diff”, “ports”, “ps” in chat</span>
+          </div>
+          <div class="miniRow">
+            <span class="k">Privacy</span>
+            <span class="v">Local only • no cloud • no silent camera</span>
+          </div>
+        </div>
       </div>
 
-      <div class="chat">
-        <div class="chatline" id="friendline">Loading SHONA…</div>
-      </div>
+      <!-- Right: assistant + output -->
+      <div class="card assistant">
+        <div class="cardHead">
+          <h2>Assistant</h2>
+          <p class="muted" id="friendline">Loading…</p>
+        </div>
 
-      <div class="out" id="out"></div>
+        <div class="chatbox" id="chatbox">
+          <div class="bubble shona">
+            <div class="name">SHONA</div>
+            <div class="msg">I’m online. Tell me what you need—scan, diff, ports, processes, or find a file.</div>
+          </div>
+        </div>
+
+        <div class="composer">
+          <input id="q" class="input" placeholder='Type a command: scan | diff | ports | ps | find invoice' />
+          <button class="send" onclick="send()">Send</button>
+        </div>
+
+        <div class="outputHead">
+          <div class="title">Output</div>
+          <div class="tools">
+            <button class="chip" onclick="copyOut()">Copy</button>
+            <button class="chip" onclick="clearOut()">Clear</button>
+          </div>
+        </div>
+        <pre class="out" id="out">{}</pre>
+      </div>
     </section>
 
     <footer class="foot">
-      <span>Privacy: local only • No cloud • No silent camera</span>
+      <span>SHONA v0.1.x • Built for calm security</span>
     </footer>
-  </div>
+  </main>
 
   <script src="/static/app.js"></script>
 </body>

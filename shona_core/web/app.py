@@ -43,6 +43,10 @@ def api_ps(limit: int = 30):
 def api_ports():
     return JSONResponse({"items": list_listening_ports()})
 
+@app.get("/api/health")
+def api_health():
+    return JSONResponse({"ok": True, "name": "shona", "version": "0.1.0"})
+
 
 @app.get("/api/friendline")
 def api_friendline():

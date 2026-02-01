@@ -17,7 +17,7 @@ BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="SHONA", version="0.2.0")
+app = FastAPI(title="SHONA", version="0.2.1")
 
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

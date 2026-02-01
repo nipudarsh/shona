@@ -8,26 +8,26 @@ def score_diff(diff: dict) -> dict:
     score = 0
     notes: list[str] = []
 
-    sys_changes = diff.get("changes", {})
-    if sys_changes:
-        score += 5 * len(sys_changes)
-        notes.append(f"{len(sys_changes)} system identity change(s)")
+    def add(cat: str, weight: int, cap: int) -> None:
+        nonlocal score
+        added = diff.get(cat, {}).get("added", [])
+        removed = diff.get(cat, {}).get("removed", [])
+        n = len(added) + len(removed)
+        if n:
+            score += min(cap, weight * n)
+            notes.append(f"{cat} changes (+{len(added)}/-{len(removed)})")
 
-    proc_added = diff.get("processes", {}).get("added", [])
-    proc_removed = diff.get("processes", {}).get("removed", [])
-    if proc_added or proc_removed:
-        score += min(30, 2 * (len(proc_added) + len(proc_removed)))
-        notes.append(f"process changes (+{len(proc_added)}/-{len(proc_removed)})")
+    add("processes", weight=2, cap=30)
+    add("ports", weight=5, cap=40)
 
-    ports_added = diff.get("ports", {}).get("added", [])
-    ports_removed = diff.get("ports", {}).get("removed", [])
-    if ports_added or ports_removed:
-        score += min(40, 5 * (len(ports_added) + len(ports_removed)))
-        notes.append(f"listening port changes (+{len(ports_added)}/-{len(ports_removed)})")
+    # Persistence surfaces are higher risk if they change
+    add("startup", weight=8, cap=60)
+    add("scheduled_tasks", weight=8, cap=60)
+    add("services", weight=6, cap=50)
 
-    if score >= 60:
+    if score >= 80:
         severity = "high"
-    elif score >= 20:
+    elif score >= 30:
         severity = "medium"
     else:
         severity = "low"

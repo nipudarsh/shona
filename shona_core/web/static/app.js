@@ -4,7 +4,6 @@ function setMood(sev){
   const mood = (sev || "CALM").toUpperCase();
   $("mood").textContent = mood;
 
-  // dot color logic
   const dot = $("dot");
   if(mood === "HIGH"){
     dot.style.background = "var(--red)";
@@ -51,7 +50,7 @@ async function doScan(){
   appendBubble("user", "scan");
   setMood("WATCHING");
   const data = await j("/api/scan", {method:"POST"});
-  appendBubble("shona", `Snapshot saved. Want a diff?`);
+  appendBubble("shona", "Snapshot saved. Want a diff?");
   out(data);
   setMood("CALM");
 }
@@ -61,6 +60,7 @@ async function doDiff(){
   const data = await j("/api/diff");
   out(data);
   const sev = (data.risk && data.risk.severity) ? data.risk.severity : "low";
+
   if(sev === "high"){
     appendBubble("shona", "Something looks risky. I can explain the changes if you want.");
   } else if(sev === "medium"){
@@ -99,11 +99,6 @@ async function send(){
   if(cmd === "diff") return doDiff();
   if(cmd === "ports") return loadPorts();
   if(cmd === "ps" || cmd === "processes") return loadPs();
-
-  if(cmd.startsWith("find ")){
-    appendBubble("shona", "Find isn’t wired in web yet in v0.1.1 — use CLI for now: `shona find \"name\"`.");
-    return;
-  }
 
   appendBubble("shona", "I can run: scan, diff, ports, ps. (Web UI v0.1.1)");
 }

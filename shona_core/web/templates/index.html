@@ -18,9 +18,9 @@
     <header class="top">
       <div class="brand">
         <div class="logo">
-          <!-- simple futuristic “S” -->
           <svg viewBox="0 0 24 24" fill="none">
-            <path d="M18 7.5c0-2-2.5-3.5-6-3.5S6 5.5 6 7.5 8.5 11 12 11s6 1.5 6 3.5S15.5 18 12 18s-6-1.5-6-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M18 7.5c0-2-2.5-3.5-6-3.5S6 5.5 6 7.5 8.5 11 12 11s6 1.5 6 3.5S15.5 18 12 18s-6-1.5-6-3.5"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
         <div>
@@ -38,7 +38,6 @@
     </header>
 
     <section class="grid">
-      <!-- Left: command panel -->
       <div class="card panel">
         <div class="cardHead">
           <h2>Quick Actions</h2>
@@ -70,7 +69,7 @@
         <div class="mini">
           <div class="miniRow">
             <span class="k">Tip</span>
-            <span class="v">Try: “scan”, “diff”, “ports”, “ps” in chat</span>
+            <span class="v">Type: scan / diff / ports / ps</span>
           </div>
           <div class="miniRow">
             <span class="k">Privacy</span>
@@ -79,7 +78,6 @@
         </div>
       </div>
 
-      <!-- Right: assistant + output -->
       <div class="card assistant">
         <div class="cardHead">
           <h2>Assistant</h2>
@@ -89,12 +87,12 @@
         <div class="chatbox" id="chatbox">
           <div class="bubble shona">
             <div class="name">SHONA</div>
-            <div class="msg">I’m online. Tell me what you need—scan, diff, ports, processes, or find a file.</div>
+            <div class="msg">I’m online. Tell me what you need—scan, diff, ports, or processes.</div>
           </div>
         </div>
 
         <div class="composer">
-          <input id="q" class="input" placeholder='Type a command: scan | diff | ports | ps | find invoice' />
+          <input id="q" class="input" placeholder='Type: scan | diff | ports | ps' />
           <button class="send" onclick="send()">Send</button>
         </div>
 
@@ -110,7 +108,7 @@
     </section>
 
     <footer class="foot">
-      <span>SHONA v0.1.x • Built for calm security</span>
+      <span>SHONA v0.1.1 • Built for calm security</span>
     </footer>
   </main>
 

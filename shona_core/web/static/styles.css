@@ -136,14 +136,10 @@ h1{margin:0; font-size:28px; letter-spacing:0.4px}
   padding:12px;
 }
 .miniRow{display:flex; gap:10px; margin:6px 0; font-size:12px}
-.miniRow .k{
-  min-width:64px;
-  color: rgba(255,255,255,0.55);
-}
+.miniRow .k{min-width:64px; color: rgba(255,255,255,0.55)}
 .miniRow .v{color: rgba(255,255,255,0.75)}
 
 .assistant .muted{color: var(--muted)}
-
 .chatbox{
   margin-top:12px;
   height:250px;
@@ -168,7 +164,6 @@ h1{margin:0; font-size:28px; letter-spacing:0.4px}
   letter-spacing:0.4px;
 }
 .bubble .msg{font-size:13px; line-height:1.35}
-
 .bubble.shona{
   background: linear-gradient(135deg, rgba(255,107,214,0.14), rgba(155,107,255,0.10));
 }
@@ -177,10 +172,7 @@ h1{margin:0; font-size:28px; letter-spacing:0.4px}
   background: rgba(255,255,255,0.06);
 }
 
-.composer{
-  display:flex; gap:10px;
-  margin-top:10px;
-}
+.composer{display:flex; gap:10px; margin-top:10px}
 .input{
   flex:1;
   padding:12px 14px;
@@ -200,7 +192,6 @@ h1{margin:0; font-size:28px; letter-spacing:0.4px}
   font-weight:800;
   cursor:pointer;
 }
-.send:hover{border-color: rgba(255,107,214,0.50)}
 
 .outputHead{
   display:flex; justify-content:space-between; align-items:center;
@@ -217,7 +208,6 @@ h1{margin:0; font-size:28px; letter-spacing:0.4px}
   cursor:pointer;
   font-size:12px;
 }
-.chip:hover{border-color: rgba(98,255,182,0.45)}
 
 .out{
   margin-top:10px;

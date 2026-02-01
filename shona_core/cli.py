@@ -12,6 +12,8 @@ from shona_core.risk import score_diff
 from shona_core.modules.processes import list_processes
 from shona_core.modules.ports import list_listening_ports
 from shona_core.retention import ignore_add, load_ignore, baseline_set
+from shona_core.owner import owner_init, owner_verify, require_token
+from shona_core.audit import log_event, tail as audit_tail
 
 RUNTIME_DIR = Path(".shona")
 STATE_DIR = RUNTIME_DIR / "state"
@@ -111,7 +113,6 @@ def cmd_baseline_accept(snapshot: str) -> int:
     _ensure_runtime()
     p = Path(snapshot)
     if not p.exists():
-        # allow passing just filename in snapshots dir
         alt = Path(".shona/snapshots") / snapshot
         if alt.exists():
             p = alt
@@ -207,6 +208,71 @@ def cmd_web_stop() -> int:
     return 0
 
 
+def cmd_owner_init(pin: str) -> int:
+    res = owner_init(pin)
+    print(json.dumps(res, indent=2))
+    if res.get("ok"):
+        log_event("owner_init", {"ok": True})
+        return 0
+    log_event("owner_init", {"ok": False})
+    return 2
+
+
+def cmd_owner_verify(pin: str, ttl: int) -> int:
+    res = owner_verify(pin, ttl_seconds=ttl)
+    print(json.dumps(res, indent=2))
+    log_event("owner_verify", {"ok": bool(res.get("ok")), "ttl": ttl})
+    return 0 if res.get("ok") else 2
+
+
+def cmd_audit_show(tail_n: int) -> int:
+    items = audit_tail(tail_n)
+    print(json.dumps({"ok": True, "items": items}, indent=2))
+    return 0
+
+
+def cmd_startup_disable(name: str, token: str) -> int:
+    chk = require_token(token)
+    if not chk.get("ok"):
+        print(json.dumps(chk, indent=2))
+        log_event("startup_disable", {"ok": False, "reason": chk.get("message")})
+        return 2
+
+    from shona_core.modules.actions_win import disable_startup_shortcut
+    res = disable_startup_shortcut(name)
+    print(json.dumps(res, indent=2))
+    log_event("startup_disable", {"ok": bool(res.get("ok")), "name": name})
+    return 0 if res.get("ok") else 2
+
+
+def cmd_tasks_disable(taskname: str, token: str) -> int:
+    chk = require_token(token)
+    if not chk.get("ok"):
+        print(json.dumps(chk, indent=2))
+        log_event("tasks_disable", {"ok": False, "reason": chk.get("message")})
+        return 2
+
+    from shona_core.modules.actions_win import disable_scheduled_task
+    res = disable_scheduled_task(taskname)
+    print(json.dumps(res, indent=2))
+    log_event("tasks_disable", {"ok": bool(res.get("ok")), "task": taskname})
+    return 0 if res.get("ok") else 2
+
+
+def cmd_services_stop(service: str, token: str) -> int:
+    chk = require_token(token)
+    if not chk.get("ok"):
+        print(json.dumps(chk, indent=2))
+        log_event("services_stop", {"ok": False, "reason": chk.get("message")})
+        return 2
+
+    from shona_core.modules.actions_win import stop_service
+    res = stop_service(service)
+    print(json.dumps(res, indent=2))
+    log_event("services_stop", {"ok": bool(res.get("ok")), "service": service})
+    return 0 if res.get("ok") else 2
+
+
 def cmd_tray() -> int:
     _ensure_runtime()
     from shona_core.tray import run_tray
@@ -228,23 +294,30 @@ def main() -> None:
 
     sub.add_parser("ports", help="List listening ports")
 
-    # Persistence
     startup_p = sub.add_parser("startup", help="Startup persistence (Windows)")
     startup_sub = startup_p.add_subparsers(dest="startup_cmd", required=True)
     startup_sub.add_parser("list", help="List startup entries")
+    sd = startup_sub.add_parser("disable", help="Disable a startup folder entry (safe rename)")
+    sd.add_argument("name", type=str, help="Name fragment to match")
+    sd.add_argument("--token", required=True)
 
     tasks_p = sub.add_parser("tasks", help="Scheduled tasks (Windows)")
     tasks_sub = tasks_p.add_subparsers(dest="tasks_cmd", required=True)
-    tasks_list = tasks_sub.add_parser("list", help="List scheduled tasks")
-    tasks_list.add_argument("--limit", type=int, default=200)
+    tl = tasks_sub.add_parser("list", help="List scheduled tasks")
+    tl.add_argument("--limit", type=int, default=200)
+    td = tasks_sub.add_parser("disable", help="Disable a scheduled task by name")
+    td.add_argument("taskname", type=str)
+    td.add_argument("--token", required=True)
 
     services_p = sub.add_parser("services", help="Windows services")
     services_sub = services_p.add_subparsers(dest="services_cmd", required=True)
-    serv_list = services_sub.add_parser("list", help="List services")
-    serv_list.add_argument("--limit", type=int, default=300)
+    sl = services_sub.add_parser("list", help="List services")
+    sl.add_argument("--limit", type=int, default=300)
     services_sub.add_parser("suspicious", help="Heuristic flags (non-judgemental)")
+    ss = services_sub.add_parser("stop", help="Stop a service (requests stop)")
+    ss.add_argument("service", type=str)
+    ss.add_argument("--token", required=True)
 
-    # Retention
     ignore_p = sub.add_parser("ignore", help="Ignore list to reduce noise")
     ignore_sub = ignore_p.add_subparsers(dest="ignore_cmd", required=True)
     ignore_add_p = ignore_sub.add_parser("add", help="Add ignore entry")
@@ -256,6 +329,19 @@ def main() -> None:
     baseline_sub = baseline_p.add_subparsers(dest="baseline_cmd", required=True)
     base_acc = baseline_sub.add_parser("accept", help="Accept a snapshot as baseline")
     base_acc.add_argument("snapshot", type=str, help="Snapshot filename or path")
+
+    owner_p = sub.add_parser("owner", help="Owner verification (PIN)")
+    owner_sub = owner_p.add_subparsers(dest="owner_cmd", required=True)
+    oi = owner_sub.add_parser("init", help="Initialize owner PIN")
+    oi.add_argument("--pin", required=True)
+    ov = owner_sub.add_parser("verify", help="Verify PIN and get short-lived token")
+    ov.add_argument("--pin", required=True)
+    ov.add_argument("--ttl", type=int, default=300)
+
+    audit_p = sub.add_parser("audit", help="Audit log")
+    audit_sub = audit_p.add_subparsers(dest="audit_cmd", required=True)
+    ash = audit_sub.add_parser("show", help="Show recent audit events")
+    ash.add_argument("--tail", type=int, default=50)
 
     sub.add_parser("status", help="Show SHONA runtime status")
 
@@ -281,14 +367,22 @@ def main() -> None:
     elif args.cmd == "ports":
         rc = cmd_ports()
     elif args.cmd == "startup":
-        rc = cmd_startup_list()
+        if args.startup_cmd == "list":
+            rc = cmd_startup_list()
+        else:
+            rc = cmd_startup_disable(args.name, args.token)
     elif args.cmd == "tasks":
-        rc = cmd_tasks_list(args.limit)
+        if args.tasks_cmd == "list":
+            rc = cmd_tasks_list(args.limit)
+        else:
+            rc = cmd_tasks_disable(args.taskname, args.token)
     elif args.cmd == "services":
         if args.services_cmd == "list":
             rc = cmd_services_list(args.limit)
-        else:
+        elif args.services_cmd == "suspicious":
             rc = cmd_services_suspicious()
+        else:
+            rc = cmd_services_stop(args.service, args.token)
     elif args.cmd == "ignore":
         if args.ignore_cmd == "add":
             rc = cmd_ignore_add(args.kind, args.value)
@@ -296,6 +390,13 @@ def main() -> None:
             rc = cmd_ignore_list()
     elif args.cmd == "baseline":
         rc = cmd_baseline_accept(args.snapshot)
+    elif args.cmd == "owner":
+        if args.owner_cmd == "init":
+            rc = cmd_owner_init(args.pin)
+        else:
+            rc = cmd_owner_verify(args.pin, args.ttl)
+    elif args.cmd == "audit":
+        rc = cmd_audit_show(args.tail)
     elif args.cmd == "status":
         rc = cmd_status()
     elif args.cmd == "web":

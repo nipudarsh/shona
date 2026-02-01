@@ -108,7 +108,19 @@ def cmd_open(path_str: str) -> int:
 
 
 def _is_web_running() -> bool:
-    return PID_FILE.exists()
+    if not URL_FILE.exists():
+        return False
+    url = URL_FILE.read_text(encoding="utf-8").strip()
+    if not url:
+        return False
+
+    try:
+        import urllib.request
+        with urllib.request.urlopen(url + "/api/health", timeout=1.2) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
 
 
 def cmd_status() -> int:
@@ -123,13 +135,17 @@ def cmd_status() -> int:
 
 def cmd_web_start(host: str, port: int) -> int:
     _ensure_runtime()
+
     if _is_web_running():
         print("[OK] Web already running.")
         return 0
 
+    # stale cleanup
+    PID_FILE.unlink(missing_ok=True)
+    URL_FILE.unlink(missing_ok=True)
+
     import subprocess
 
-    # Start uvicorn in background
     cmd = [
         sys.executable,
         "-m",
@@ -146,6 +162,7 @@ def cmd_web_start(host: str, port: int) -> int:
     URL_FILE.write_text(url, encoding="utf-8")
     print(f"[OK] Web started: {url}")
     return 0
+
 
 
 def cmd_web_open() -> int:

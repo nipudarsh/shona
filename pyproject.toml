@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "shona"
-version = "0.1.0"
+version = "0.1.1"
 description = "SHONA - local-first cybersecurity assistant (CLI + Web + Tray)"
 readme = "README.md"
 requires-python = ">=3.10"

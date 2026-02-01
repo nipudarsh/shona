@@ -46,61 +46,35 @@ async function friendline(){
   $("friendline").textContent = pick;
 }
 
-async function doScan(){
-  appendBubble("user", "scan");
-  setMood("WATCHING");
-  const data = await j("/api/scan", {method:"POST"});
-  appendBubble("shona", "Snapshot saved. Want a diff?");
+async function runCmd(text){
+  const data = await j("/api/command", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({text})
+  });
   out(data);
-  setMood("CALM");
-}
 
-async function doDiff(){
-  appendBubble("user", "diff");
-  const data = await j("/api/diff");
-  out(data);
-  const sev = (data.risk && data.risk.severity) ? data.risk.severity : "low";
-
-  if(sev === "high"){
-    appendBubble("shona", "Something looks risky. I can explain the changes if you want.");
-  } else if(sev === "medium"){
-    appendBubble("shona", "A few things changed. Probably normal, but worth a look.");
+  if(data.kind === "diff" && data.data && data.data.risk){
+    const sev = (data.data.risk.severity || "low").toUpperCase();
+    setMood(sev);
   } else {
-    appendBubble("shona", "All calm. No meaningful changes detected.");
+    setMood("CALM");
   }
-  setMood(sev.toUpperCase());
+
+  if(data.say) appendBubble("shona", data.say);
 }
 
-async function loadPs(){
-  appendBubble("user", "ps");
-  const data = await j("/api/ps?limit=40");
-  out(data);
-  appendBubble("shona", "Here are the running processes (top slice).");
-  setMood("CALM");
-}
-
-async function loadPorts(){
-  appendBubble("user", "ports");
-  const data = await j("/api/ports");
-  out(data);
-  appendBubble("shona", "Here are listening ports. New unexpected ports can matter.");
-  setMood("CALM");
-}
+async function doScan(){ appendBubble("user","scan"); await runCmd("scan"); }
+async function doDiff(){ appendBubble("user","diff"); await runCmd("diff"); }
+async function loadPorts(){ appendBubble("user","ports"); await runCmd("ports"); }
+async function loadPs(){ appendBubble("user","ps"); await runCmd("ps 40"); }
 
 async function send(){
   const q = $("q").value.trim();
   if(!q) return;
   $("q").value = "";
-  const cmd = q.toLowerCase();
-
   appendBubble("user", q);
-
-  if(cmd === "scan") return doScan();
-  if(cmd === "diff") return doDiff();
-  if(cmd === "ports") return loadPorts();
-  if(cmd === "ps" || cmd === "processes") return loadPs();
-
-  appendBubble("shona", "I can run: scan, diff, ports, ps. (Web UI v0.1.1)");
+  await runCmd(q);
 }
 
 async function copyOut(){

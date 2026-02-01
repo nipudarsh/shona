@@ -17,7 +17,8 @@ BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="SHONA", version="0.1.2")
+app = FastAPI(title="SHONA", version="0.2.0")
+
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -25,7 +26,8 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 @app.get("/api/health")
 def api_health():
-    return JSONResponse({"ok": True, "name": "shona", "version": "0.1.2"})
+    return JSONResponse({"ok": True, "name": "shona", "version": "0.2.0"})
+
 
 
 @app.get("/", response_class=HTMLResponse)

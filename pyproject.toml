@@ -14,7 +14,9 @@ dependencies = [
   "jinja2>=3.1",
   "pystray>=0.19",
   "pillow>=10.0",
+  "pyttsx3>=2.90"
 ]
+
 
 [project.scripts]
 shona = "shona_core.cli:main"

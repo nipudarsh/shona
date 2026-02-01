@@ -7,18 +7,19 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from shona_core.scan import run_scan
 from shona_core.diff import diff_latest_two
-from shona_core.risk import score_diff
-from shona_core.modules.processes import list_processes
 from shona_core.modules.ports import list_listening_ports
+from shona_core.modules.processes import list_processes
+from shona_core.risk import score_diff
+from shona_core.scan import run_scan
+from shona_core.settings import load_settings, set_setting
+from shona_core.voice import speak
 
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 
-app = FastAPI(title="SHONA", version="0.2.1")
-
+app = FastAPI(title="SHONA", version="0.3.0")
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -26,8 +27,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 @app.get("/api/health")
 def api_health():
-    return JSONResponse({"ok": True, "name": "shona", "version": "0.2.0"})
-
+    return JSONResponse({"ok": True, "name": "shona", "version": "0.3.0"})
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -42,10 +42,41 @@ def api_friendline():
         "All quiet. I’ll stay calm in the background.",
         "If anything changes, I’ll explain it cleanly—no panic.",
         "Type: scan, diff, ports, ps, find <name>",
+        "Voice is opt-in. No always-on mic. No cloud.",
     ]
     return JSONResponse({"lines": lines})
 
 
+# ----------------------------
+# Settings + voice
+# ----------------------------
+@app.get("/api/settings")
+def api_settings():
+    return JSONResponse({"ok": True, "settings": load_settings()})
+
+
+@app.post("/api/settings")
+async def api_settings_set(payload: dict):
+    key = str(payload.get("key", "")).strip()
+    val = payload.get("value")
+    if not key:
+        return JSONResponse({"ok": False, "message": "key required"})
+    data = set_setting(key, val)
+    return JSONResponse({"ok": True, "settings": data})
+
+
+@app.post("/api/say")
+async def api_say(payload: dict):
+    text = str(payload.get("text", "")).strip()
+    if not text:
+        return JSONResponse({"ok": False, "message": "text required"})
+    res = speak(text)
+    return JSONResponse(res)
+
+
+# ----------------------------
+# Core API (buttons)
+# ----------------------------
 @app.post("/api/scan")
 def api_scan():
     p = run_scan()
@@ -70,6 +101,9 @@ def api_ports():
     return JSONResponse({"items": list_listening_ports()})
 
 
+# ----------------------------
+# Command router (chat)
+# ----------------------------
 def _safe_find_files(query: str, limit: int = 30) -> list[str]:
     query_l = query.lower().strip()
     if not query_l:
@@ -111,7 +145,14 @@ async def api_command(payload: dict):
     cmd = text.lower()
 
     if not cmd:
-        return JSONResponse({"ok": False, "kind": "help", "data": {}, "say": "Type a command like: scan, diff, ports, ps, find <name>."})
+        return JSONResponse(
+            {
+                "ok": False,
+                "kind": "help",
+                "data": {},
+                "say": "Type a command like: scan, diff, ports, ps, find <name>.",
+            }
+        )
 
     if cmd == "scan":
         p = run_scan()
@@ -134,7 +175,6 @@ async def api_command(payload: dict):
         return JSONResponse({"ok": True, "kind": "ports", "data": {"items": items}, "say": "Here are listening ports. New unexpected ports can matter."})
 
     if cmd.startswith("ps"):
-        # ps or ps 50
         parts = cmd.split()
         limit = 40
         if len(parts) >= 2 and parts[1].isdigit():

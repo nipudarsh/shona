@@ -33,6 +33,18 @@ function appendBubble(who, text){
   box.appendChild(wrap);
   box.scrollTop = box.scrollHeight;
 }
+async function maybeSpeak(text){
+  try{
+    const s = await j("/api/settings");
+    const cfg = (s.settings || {});
+    if(!cfg.voice_enabled) return;
+    await j("/api/say", {
+      method:"POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({text})
+    });
+  }catch(e){}
+}
 
 async function j(url, opts){
   const r = await fetch(url, opts);
@@ -62,6 +74,8 @@ async function runCmd(text){
   }
 
   if(data.say) appendBubble("shona", data.say);
+  if(data.say) await maybeSpeak(data.say);
+
 }
 
 async function doScan(){ appendBubble("user","scan"); await runCmd("scan"); }

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SHONA</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>SHONA</h1>
+        <p class="sub">Local-first cyber assistant • friend-mode • v0.1.0</p>
+      </div>
+      <div class="badge" id="mood">CALM</div>
+    </header>
+
+    <section class="card">
+      <div class="row">
+        <button class="btn" onclick="doScan()">Scan</button>
+        <button class="btn" onclick="doDiff()">Diff</button>
+        <button class="btn" onclick="loadPorts()">Ports</button>
+        <button class="btn" onclick="loadPs()">Processes</button>
+      </div>
+
+      <div class="chat">
+        <div class="chatline" id="friendline">Loading SHONA…</div>
+      </div>
+
+      <div class="out" id="out"></div>
+    </section>
+
+    <footer class="foot">
+      <span>Privacy: local only • No cloud • No silent camera</span>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
